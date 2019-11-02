@@ -652,7 +652,7 @@ public class TestWatchesBuilder extends CuratorTestBase
             };
             return new ZooKeeper(connectString, sessionTimeout, actualWatcher);
         };
-        try (CuratorFramework client = CuratorFrameworkFactory.builder().connectString(server.getConnectString()).retryPolicy(new RetryOneTime(1)).zookeeperFactory(zookeeperFactory).build())
+        try ( CuratorFramework client = CuratorFrameworkFactory.builder().connectString(server.getConnectString()).retryPolicy(new RetryOneTime(1)).zookeeperFactory(zookeeperFactory).build() )
         {
             client.start();
             client.blockUntilConnected();
