@@ -622,7 +622,7 @@ public class TestWatchesBuilder extends CuratorTestBase
     @Test(groups = CuratorTestBase.zk36Group)
     public void testPersistentRecursiveWatch() throws Exception
     {
-        try (CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1)))
+        try ( CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1)) )
         {
             client.start();
             client.blockUntilConnected();
