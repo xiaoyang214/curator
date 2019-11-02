@@ -16,16 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.curator.test.compatibility;
+package org.apache.curator.framework.api;
 
-import org.apache.curator.test.BaseClassForTests;
-import org.testng.annotations.Listeners;
-
-public class CuratorTestBase extends BaseClassForTests
+public interface GetAllChildrenNumberBuilder extends BackgroundPathableInt
 {
-    public static final String zk35Group = "zk35";
-    public static final String zk36Group = "zk36";
-    public static final String zk35TestCompatibilityGroup = "zk35TestCompatibility";
-
-    protected final Timing2 timing = new Timing2();
 }

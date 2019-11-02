@@ -42,6 +42,7 @@ class CuratorEventImpl implements CuratorEvent
     private final WatchedEvent watchedEvent;
     private final List<ACL> aclList;
     private final List<CuratorTransactionResult> opResults;
+    private final int number;
 
     @Override
     public CuratorEventType getType()
@@ -110,6 +111,11 @@ class CuratorEventImpl implements CuratorEvent
     }
 
     @Override
+    public int getNumber() {
+        return number;
+    }
+
+    @Override
     public String toString()
     {
         return "CuratorEventImpl{" +
@@ -124,14 +130,21 @@ class CuratorEventImpl implements CuratorEvent
             ", watchedEvent=" + watchedEvent +
             ", aclList=" + aclList +
             ", opResults=" + opResults +
+            ", number=" + number +
             '}';
     }
 
     CuratorEventImpl(CuratorFrameworkImpl client, CuratorEventType type, int resultCode, String path, String name, Object context, Stat stat, byte[] data, List<String> children, WatchedEvent watchedEvent, List<ACL> aclList, List<CuratorTransactionResult> opResults)
     {
+        this(client, type, resultCode, path, name, context, stat, data, children, watchedEvent, aclList, opResults, 0);
+    }
+
+    CuratorEventImpl(CuratorFrameworkImpl client, CuratorEventType type, int resultCode, String path, String name, Object context, Stat stat, byte[] data, List<String> children, WatchedEvent watchedEvent, List<ACL> aclList, List<CuratorTransactionResult> opResults, int number)
+    {
         this.type = type;
         this.resultCode = resultCode;
         this.opResults = (opResults != null) ? ImmutableList.copyOf(opResults) : null;
+        this.number = number;
         this.path = client.unfixForNamespace(path);
         this.name = name;
         this.context = context;

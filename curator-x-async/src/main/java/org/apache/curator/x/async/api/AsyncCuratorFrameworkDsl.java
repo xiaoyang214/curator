@@ -19,6 +19,8 @@
 package org.apache.curator.x.async.api;
 
 import org.apache.curator.framework.api.transaction.CuratorOp;
+import org.apache.curator.x.async.AsyncStage;
+import java.util.List;
 
 /**
  * Zookeeper framework-style client
@@ -112,4 +114,18 @@ public interface AsyncCuratorFrameworkDsl extends WatchableAsyncCuratorFramework
      * @return builder object
      */
     AsyncRemoveWatchesBuilder removeWatches();
+
+    /**
+     * Start a getAllChildrenNumber builder
+     *
+     * @return builder object
+     */
+    AsyncPathable<AsyncStage<Integer>> getAllChildrenNumber();
+
+    /**
+     * Start a getEphemerals builder
+     *
+     * @return builder object
+     */
+    AsyncPathable<AsyncStage<List<String>>> getEphemerals();
 }

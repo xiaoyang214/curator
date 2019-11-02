@@ -77,6 +77,14 @@ public interface CuratorEvent
     public List<String> getChildren();
 
     /**
+     * @return any children/paths (synonym for {@link #getChildren()})
+     */
+    default List<String> getPaths()
+    {
+        return getChildren();
+    }
+
+    /**
      * @return any ACL list or null
      */
     public List<ACL> getACLList();
@@ -93,4 +101,12 @@ public interface CuratorEvent
      * @return any WatchedEvent
      */
     public WatchedEvent getWatchedEvent();
+
+    /**
+     * @return any number or 0
+     */
+    default int getNumber()
+    {
+        return 0;
+    }
 }

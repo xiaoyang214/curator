@@ -21,6 +21,7 @@ package org.apache.curator.framework.imps;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
+import com.google.common.collect.Sets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.ACLProvider;
@@ -33,18 +34,21 @@ import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.retry.RetryOneTime;
 import org.apache.curator.test.BaseClassForTests;
 import org.apache.curator.test.Timing;
+import org.apache.curator.test.compatibility.Timing2;
 import org.apache.curator.utils.CloseableUtils;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.data.ACL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -354,4 +358,44 @@ public class TestFrameworkBackground extends BaseClassForTests
     }
 
 
+    @Test
+    public void testGetAllChildrenNumber() throws Exception
+    {
+        Timing2 timing = new Timing2();
+        try ( CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1)) )
+        {
+            client.start();
+
+            client.create().creatingParentsIfNeeded().forPath("/foo/bar/baz");
+
+            BlockingQueue<Integer> queue = new LinkedBlockingQueue<>();
+            BackgroundCallback callback = (__, event) -> queue.put(event.getNumber());
+            client.getAllChildrenNumber().inBackground(callback).forPath("/foo/bar/baz");
+            client.getAllChildrenNumber().inBackground(callback).forPath("/foo/bar");
+            client.getAllChildrenNumber().inBackground(callback).forPath("/foo");
+
+            Assert.assertEquals(Integer.valueOf(0), queue.poll(timing.forWaiting().milliseconds(), TimeUnit.MILLISECONDS));
+            Assert.assertEquals(Integer.valueOf(1), queue.poll(timing.forWaiting().milliseconds(), TimeUnit.MILLISECONDS));
+            Assert.assertEquals(Integer.valueOf(2), queue.poll(timing.forWaiting().milliseconds(), TimeUnit.MILLISECONDS));
+        }
+    }
+
+    @Test
+    public void testGetEphemerals() throws Exception
+    {
+        Timing2 timing = new Timing2();
+        try ( CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1)) )
+        {
+            client.start();
+
+            client.create().creatingParentsIfNeeded().forPath("/foo/bar/baz");
+            client.create().withMode(CreateMode.EPHEMERAL).forPath("/foo/bar/e1");
+            client.create().withMode(CreateMode.EPHEMERAL).forPath("/foo/bar/baz/e2");
+
+            BlockingQueue<Set<String>> queue = new LinkedBlockingQueue<>();
+            BackgroundCallback callback = (__, event) -> queue.put(Sets.newHashSet(event.getPaths()));
+            client.getEphemerals().inBackground(callback).forPath("/foo");
+            Assert.assertEquals(queue.poll(timing.forWaiting().milliseconds(), TimeUnit.MILLISECONDS), Sets.newHashSet("/foo/bar/e1", "/foo/bar/baz/e2"));
+        }
+    }
 }

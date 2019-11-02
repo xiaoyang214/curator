@@ -48,6 +48,7 @@ class BackgroundProcs
     static final BackgroundProc<List<String>> childrenProc = makeProc(CuratorEvent::getChildren);
     static final BackgroundProc<List<ACL>> aclProc = makeProc(CuratorEvent::getACLList);
     static final BackgroundProc<List<CuratorTransactionResult>> opResultsProc = makeProc(CuratorEvent::getOpResults);
+    static final BackgroundProc<Integer> numberProc = makeProc(CuratorEvent::getNumber);
 
     static <T> BackgroundProc<T> makeProc(Function<CuratorEvent, T> proc)
     {

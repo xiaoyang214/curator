@@ -96,5 +96,21 @@ public enum CuratorEventType
     /**
      * Event sent when client is being closed
      */
-    CLOSING
+    CLOSING,
+
+    /**
+     * Corresponds to {@link org.apache.curator.framework.CuratorFramework#watchers()}
+     */
+    ADD_WATCH,
+
+    /**
+     * Corresponds to {@link CuratorFramework#getAllChildrenNumber()}
+     */
+    ALL_CHILDREN_NUMBER,
+
+    /**
+     * Corresponds to {@link CuratorFramework#getEphemerals()}. The paths
+     * are returned via {@link CuratorEvent#getPaths()}
+     */
+    EPHEMERALS
 }

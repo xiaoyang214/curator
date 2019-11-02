@@ -16,16 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.curator.test.compatibility;
+package org.apache.curator.framework.api;
 
-import org.apache.curator.test.BaseClassForTests;
-import org.testng.annotations.Listeners;
-
-public class CuratorTestBase extends BaseClassForTests
+public interface ErrorListenerPathableInt extends PathableInt
 {
-    public static final String zk35Group = "zk35";
-    public static final String zk36Group = "zk36";
-    public static final String zk35TestCompatibilityGroup = "zk35TestCompatibility";
-
-    protected final Timing2 timing = new Timing2();
+    /**
+     * Set an error listener for this background operation. If an exception
+     * occurs while processing the call in the background, this listener will
+     * be called
+     *
+     * @param listener the listener
+     * @return this for chaining
+     */
+    PathableInt withUnhandledErrorListener(UnhandledErrorListener listener);
 }

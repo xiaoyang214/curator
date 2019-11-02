@@ -42,6 +42,7 @@ import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateErrorPolicy;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.framework.state.ConnectionStateManager;
+import org.apache.curator.utils.Compatibility;
 import org.apache.curator.utils.DebugUtils;
 import org.apache.curator.utils.EnsurePath;
 import org.apache.curator.utils.ThreadUtils;
@@ -482,6 +483,20 @@ public class CuratorFrameworkImpl implements CuratorFramework
     }
 
     @Override
+    public GetAllChildrenNumberBuilder getAllChildrenNumber()
+    {
+        checkState();
+        return new GetAllChildrenNumberBuilderImpl(this);
+    }
+
+    @Override
+    public GetEphemeralsBuilder getEphemerals()
+    {
+        checkState();
+        return new GetEphemeralsBuilderImpl(this);
+    }
+
+    @Override
     public GetACLBuilder getACL()
     {
         checkState();
@@ -828,6 +843,12 @@ public class CuratorFrameworkImpl implements CuratorFramework
     public boolean isZk34CompatibilityMode()
     {
         return zk34CompatibilityMode;
+    }
+
+    @Override
+    public boolean isZk35CompatibilityMode()
+    {
+        return !zk34CompatibilityMode && !Compatibility.hasPersistentWatchers();
     }
 
     EnsembleTracker getEnsembleTracker()

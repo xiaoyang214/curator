@@ -19,6 +19,7 @@
 package org.apache.curator.framework.imps;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.curator.framework.AuthInfo;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -31,8 +32,8 @@ import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.RetryOneTime;
 import org.apache.curator.test.BaseClassForTests;
 import org.apache.curator.test.Timing;
+import org.apache.curator.test.compatibility.CuratorTestBase;
 import org.apache.curator.test.compatibility.Timing2;
-import org.apache.curator.test.compatibility.Zk35MethodInterceptor;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.utils.EnsurePath;
 import org.apache.curator.utils.ZKPaths;
@@ -52,6 +53,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -59,9 +61,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("deprecation")
+@Test(groups = CuratorTestBase.zk35TestCompatibilityGroup)
 public class TestFramework extends BaseClassForTests
 {
-    @BeforeMethod
+    @BeforeMethod(alwaysRun = true)
     @Override
     public void setup() throws Exception
     {
@@ -69,7 +72,7 @@ public class TestFramework extends BaseClassForTests
         super.setup();
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     @Override
     public void teardown() throws Exception
     {
@@ -77,7 +80,7 @@ public class TestFramework extends BaseClassForTests
         super.teardown();
     }
 
-    @Test(groups = Zk35MethodInterceptor.zk35Group)
+    @Test(groups = CuratorTestBase.zk35Group)
     public void testWaitForShutdownTimeoutMs() throws Exception
     {
         final BlockingQueue<Integer> timeoutQueue = new ArrayBlockingQueue<>(1);
@@ -1263,6 +1266,40 @@ public class TestFramework extends BaseClassForTests
         finally
         {
             CloseableUtils.closeQuietly(client);
+        }
+    }
+
+    @Test
+    public void testGetAllChildrenNumber() throws Exception
+    {
+        try ( CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1)) )
+        {
+            client.start();
+
+            client.create().creatingParentsIfNeeded().forPath("/foo/bar/baz");
+
+            int number = client.getAllChildrenNumber().forPath("/foo/bar/baz");
+            Assert.assertEquals(0, number);
+            number = client.getAllChildrenNumber().forPath("/foo/bar");
+            Assert.assertEquals(1, number);
+            number = client.getAllChildrenNumber().forPath("/foo");
+            Assert.assertEquals(2, number);
+        }
+    }
+
+    @Test
+    public void testGetEphemerals() throws Exception
+    {
+        try ( CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1)) )
+        {
+            client.start();
+
+            client.create().creatingParentsIfNeeded().forPath("/foo/bar/baz");
+            client.create().withMode(CreateMode.EPHEMERAL).forPath("/foo/bar/e1");
+            client.create().withMode(CreateMode.EPHEMERAL).forPath("/foo/bar/baz/e2");
+
+            Set<String> ephemerals = Sets.newHashSet(client.getEphemerals().forPath("/foo"));
+            Assert.assertEquals(ephemerals, Sets.newHashSet("/foo/bar/e1", "/foo/bar/baz/e2"));
         }
     }
 }

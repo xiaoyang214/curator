@@ -19,6 +19,7 @@
 package org.apache.curator.framework.imps;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.curator.framework.AuthInfo;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -49,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -655,6 +657,42 @@ public class TestFramework extends BaseClassForTests
         finally
         {
             CloseableUtils.closeQuietly(client);
+        }
+    }
+
+    @Test
+    public void testGetAllChildrenNumber() throws Exception
+    {
+        try ( CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1)) )
+        {
+            client.start();
+            AsyncCuratorFramework async = AsyncCuratorFramework.wrap(client);
+
+            client.create().creatingParentsIfNeeded().forPath("/foo/bar/baz");
+
+            int number = async.getAllChildrenNumber().forPath("/foo/bar/baz").toCompletableFuture().get();
+            Assert.assertEquals(0, number);
+            number = async.getAllChildrenNumber().forPath("/foo/bar").toCompletableFuture().get();
+            Assert.assertEquals(1, number);
+            number = async.getAllChildrenNumber().forPath("/foo").toCompletableFuture().get();
+            Assert.assertEquals(2, number);
+        }
+    }
+
+    @Test
+    public void testGetEphemerals() throws Exception
+    {
+        try ( CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1)) )
+        {
+            client.start();
+            AsyncCuratorFramework async = AsyncCuratorFramework.wrap(client);
+
+            client.create().creatingParentsIfNeeded().forPath("/foo/bar/baz");
+            client.create().withMode(CreateMode.EPHEMERAL).forPath("/foo/bar/e1");
+            client.create().withMode(CreateMode.EPHEMERAL).forPath("/foo/bar/baz/e2");
+
+            Set<String> ephemerals = Sets.newHashSet(async.getEphemerals().forPath("/foo").toCompletableFuture().get());
+            Assert.assertEquals(ephemerals, Sets.newHashSet("/foo/bar/e1", "/foo/bar/baz/e2"));
         }
     }
 }
